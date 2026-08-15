@@ -34,6 +34,19 @@ end
 
 backend_name(::LLMBackend) = "unknown"
 
+function api_error_message(parsed)
+    parsed isa AbstractDict || return "unexpected response shape"
+    err = get(parsed, "error", nothing)
+    if err isa AbstractDict
+        kind = String(get(err, "type", "api_error"))
+        message = String(get(err, "message", "unknown provider error"))
+        return "$(kind): $(message)"
+    elseif err !== nothing
+        return string(err)
+    end
+    return "unexpected response shape"
+end
+
 const SYSTEM_PROMPT = """
 You are the planning module of a Julia computational-intelligence runtime.
 You do not compute results and you do not write code. You emit exactly one JSON
@@ -165,7 +178,7 @@ function complete(b::AnthropicLLM, system::AbstractString, user::AbstractString)
         "system" => String(system),
         "messages" => Any[Dict{String,Any}("role" => "user", "content" => String(user))]))
     out = IOBuffer()
-    try
+    response = try
         Downloads.request(b.url; method = "POST", input = IOBuffer(body), output = out,
                           headers = ["content-type" => "application/json",
                                      "x-api-key" => key,
@@ -184,6 +197,10 @@ function complete(b::AnthropicLLM, system::AbstractString, user::AbstractString)
     parsed isa AbstractDict ||
         return LLMResult(txt, false, "unexpected response shape", time() - t0,
                          backend_name(b))
+    response.status >= 400 &&
+        return LLMResult(txt, false,
+                         "HTTP $(response.status): $(api_error_message(parsed))",
+                         time() - t0, backend_name(b))
     content = get(parsed, "content", nothing)
     if content isa AbstractVector
         buf = IOBuffer()
@@ -193,7 +210,8 @@ function complete(b::AnthropicLLM, system::AbstractString, user::AbstractString)
         end
         return LLMResult(String(take!(buf)), true, "", time() - t0, backend_name(b))
     end
-    return LLMResult(txt, false, "unexpected response shape", time() - t0, backend_name(b))
+    return LLMResult(txt, false, api_error_message(parsed), time() - t0,
+                     backend_name(b))
 end
 
 "OpenAI-compatible chat endpoint; also covers local servers (llama.cpp, vLLM, Ollama)."
@@ -218,14 +236,15 @@ function complete(b::OpenAICompatibleLLM, system::AbstractString, user::Abstract
     headers = ["content-type" => "application/json"]
     key = get(ENV, b.api_key_env, "")
     isempty(key) || push!(headers, "authorization" => "Bearer " * key)
-    try
+    response = try
         Downloads.request(b.url; method = "POST", input = IOBuffer(body), output = out,
                           headers = headers, timeout = b.timeout_s)
     catch err
         return LLMResult("", false, "transport error: $(err)", time() - t0, backend_name(b))
     end
+    txt = String(take!(out))
     parsed = try
-        parse_json(String(take!(out)))
+        parse_json(txt)
     catch err
         return LLMResult("", false, "unparseable response: $(err)", time() - t0,
                          backend_name(b))
@@ -233,13 +252,18 @@ function complete(b::OpenAICompatibleLLM, system::AbstractString, user::Abstract
     parsed isa AbstractDict ||
         return LLMResult("", false, "unexpected response shape", time() - t0,
                          backend_name(b))
+    response.status >= 400 &&
+        return LLMResult(txt, false,
+                         "HTTP $(response.status): $(api_error_message(parsed))",
+                         time() - t0, backend_name(b))
     ch = get(parsed, "choices", nothing)
     if ch isa AbstractVector && !isempty(ch)
         msg = get(ch[1], "message", Dict{String,Any}())
         return LLMResult(String(get(msg, "content", "")), true, "", time() - t0,
                          backend_name(b))
     end
-    return LLMResult("", false, "unexpected response shape", time() - t0, backend_name(b))
+    return LLMResult(txt, false, api_error_message(parsed), time() - t0,
+                     backend_name(b))
 end
 
 # ------------------------------------------------------------ plan proposal --

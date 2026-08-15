@@ -120,7 +120,8 @@ function main()
 
     backends = [
         ("Mimase", LLM.MimaseLLM()),
-        ("Anthropic Opus 5", LLM.AnthropicLLM(model = get(ENV, "AAI_OPUS_MODEL", "claude-opus-5"))),
+        ("Anthropic Opus 5", LLM.AnthropicLLM(
+            model = get(ENV, "AAI_OPUS_MODEL", "claude-opus-5"))),
         ("Gemini 3.7", LLM.OpenAICompatibleLLM(
             model = get(ENV, "AAI_GEMINI_MODEL", "gemini-3.7-pro"),
             url = get(ENV, "AAI_GEMINI_URL", "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"),
@@ -154,6 +155,19 @@ function main()
         println(@sprintf("%-20s %7d %10.1f%% %10.1f%% %11.3f %11.3f %9.3f",
             name, agg.samples, 100 * agg.transport_ok_rate, 100 * agg.schema_ok_rate,
             agg.latency_median_s, agg.latency_p95_s, agg.quality_mean))
+    end
+
+    failures = filter(r -> !r.ok_schema, rows)
+    if !isempty(failures)
+        println("\nFailure summary:")
+        counts = Dict{Tuple{String,String},Int}()
+        for r in failures
+            key = (r.name, r.note)
+            counts[key] = get(counts, key, 0) + 1
+        end
+        for ((name, note), count) in sort(collect(counts); by = first)
+            println("  ", name, " (", count, "x): ", note)
+        end
     end
 
     println("\nDetailed rows written to: ", out_csv)
