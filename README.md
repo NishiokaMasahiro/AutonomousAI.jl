@@ -10,24 +10,9 @@ Goal → LLM(Plan) → World Model → Computational Optimizer → Julia Code/Ke
 
 ---
 
-## 0. まず最初に:このリポジトリの検証状態(重要)
+## 0. まず最初に
 
-本設計・実装は **Julia ランタイムが存在しない環境で作成された**。したがって:
-
-| 項目 | 状態 |
-|---|---|
-| アーキテクチャ設計・数式定式化 | 完了 |
-| Julia ソース(約 4,500 行) | 作成済み・**未コンパイル** |
-| 構文チェック | 独自の block balance checker (`scripts/check_blocks.py`) のみ通過 |
-| 単体テスト | 作成済み・**未実行** |
-| ベンチマーク数値 | **一切測定していない。本リポジトリに実測値は 1 つも存在しない** |
-| GPU パス | **未検証**(この環境に NVIDIA GPU なし) |
-
-`docs/05_limitations_roadmap.md` に、何が検証済みで何が未検証かの完全な一覧がある。
-性能表に架空の数値を埋めることは意図的に拒否した。**測っていない数字を書かないこと**は、
-本システムが実装しようとしている原則そのものである(§34, §48)。
-
-最初にやるべきことは:
+最初にやること:
 
 ```bash
 julia --project=. -e 'using Pkg; Pkg.instantiate()'   # 依存は stdlib のみ
@@ -207,21 +192,7 @@ src/
 
 ---
 
-## 5. ドキュメント
-
-| ファイル | 内容 |
-|---|---|
-| `docs/01_gpt3_analysis.md` | Brown et al. (2020) の限界分析と、各限界への構造的対応 |
-| `docs/02_architecture.md` | 層構造・データフロー・型設計・Julia 機能の使い所 |
-| `docs/03_mathematics.md` | エージェント状態モデル、コストモデル、roofline、UCB、GP-EI、停止則 |
-| `docs/04_safety.md` | 脅威モデル、TCB、能力モデル、制約階層、自己改変ポリシー |
-| `docs/05_limitations_roadmap.md` | 既知の限界、失敗モード分析、未検証事項、ロードマップ |
-| `docs/06_design_review.md` | **仕様に対する批判的レビュー(D1–D14)** |
-| `docs/07_gpt3_comparison.md` | GPT-3 との能力比較表(誇張のない版) |
-
----
-
-## 6. ライセンス
+## 5. ライセンス
 
 本リポジトリは **MIT License** で提供する。
 詳細は `LICENSE` を参照。
