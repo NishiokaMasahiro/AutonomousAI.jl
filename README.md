@@ -59,7 +59,7 @@ Python は使用していない。使用する場合の条件は `docs/06_design
 
 ---
 
-## 3. モジュール構成(仕様 §4 からの変更点は理由付き)
+## 3. モジュール構成
 
 ```
 src/
@@ -79,16 +79,6 @@ src/
   AgentCore.jl       Goal / Decision / 閉ループ      ← 仕様 §24,25
   Interface.jl       CLI / レポート
 ```
-
-**仕様からの変更:**
-
-1. `Core` → `AgentCore`。ネストした `Core` は Julia の `Core` を隠蔽し `using .Core` が
-   曖昧になる。
-2. `Reasoning` は `LLM.jl` + `AgentCore.jl` に分割。Planner を LLM 抽象から分離しないと
-   provider 交換時に planner まで書き換えになる。
-3. `Execute.jl` を追加。「生成コードを測る駆動コード」は生成物でも計測器でもない第三の
-   信頼カテゴリであり、混ぜると計測結果の信頼性が崩れる。
-4. `Sandbox.jl` を `Safety` から独立。隔離は OS の仕事でありポリシー判断とは層が違う。
 
 ---
 
