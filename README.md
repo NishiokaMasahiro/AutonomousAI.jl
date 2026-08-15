@@ -55,7 +55,7 @@ package extension による **weak dependency** であり、無い場合は
 理由: エージェントが監査可能であること、レジストリのないマシンで起動できることは
 安全性要件である。JSON パーサすら自前(`MiniJSON`)なのはこのため。
 
-Python は使用していない。使用する場合の条件は `docs/06_design_review.md` の D14 を参照。
+Python は使用していない。
 
 ---
 
