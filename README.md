@@ -80,7 +80,7 @@ src/
   Interface.jl       CLI / レポート
 ```
 
-**仕様からの変更(§4 は変更を許可、理由の明示を要求している):**
+**仕様からの変更:**
 
 1. `Core` → `AgentCore`。ネストした `Core` は Julia の `Core` を隠蔽し `using .Core` が
    曖昧になる。
