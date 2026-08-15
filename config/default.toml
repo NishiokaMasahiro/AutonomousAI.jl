@@ -1,0 +1,52 @@
+# AutonomousAI.jl default configuration.
+#
+# Everything here is a *ceiling* or a *capability*.  Nothing in this file can grant
+# the agent an ability the machine does not have, and nothing the agent does can
+# raise a ceiling set here.
+
+[policy]
+allow_fastmath = false          # section 7: never automatic for precision-sensitive work
+allow_inbounds = true           # still requires a discharged axes guard in the AST
+require_verification = true     # execute_final is refused without a passing report
+max_optimization_iterations = 8
+max_total_benchmark_s = 600.0
+min_relative_improvement = 0.02 # compared against the CI lower bound, not a point estimate
+
+[limits]
+max_cpu_utilization = 0.95
+max_gpu_utilization = 0.98
+max_ram_fraction = 0.60         # of total RAM
+max_vram_fraction = 0.80        # of total VRAM
+max_temperature_c = 88.0
+max_power_w = 400.0
+max_runtime_s = 300.0
+max_compile_s = 120.0
+max_processes = 8
+
+[capabilities]
+# Absent means denied.  There is no wildcard.
+fs_read = ["./data"]
+fs_write = ["./work"]
+network = false
+gpu = true
+threads = true
+distributed = false
+self_modify = false             # see docs/04_safety.md: PR generation only
+real_hardware = false           # external devices require an explicit human grant
+
+[sandbox]
+isolation = "process"           # "process" | "container"
+image = "julia:1.11"
+threads = 1
+timeout_s = 120.0
+
+[llm]
+backend = "mock"                # "mock" | "anthropic" | "openai_compatible"
+model = "claude-sonnet-4-6"
+max_tokens = 2048
+api_key_env = "ANTHROPIC_API_KEY"
+schema_retries = 2
+
+[memory]
+dir = "~/.autonomousai"
+persist_working_memory = false  # scratch state must not survive a run
