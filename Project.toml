@@ -1,0 +1,43 @@
+name = "AutonomousAI"
+uuid = "3f0a6a2c-5b4e-4d3a-9f1b-7c2e8a1d0b55"
+version = "0.1.0"
+authors = ["AutonomousAI contributors"]
+
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
+DotEnv = "4dc1fcf4-5e3b-5448-94ab-0c38ec0385c1"
+Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+Oxygen = "df9a0d86-3283-4920-82dc-4555fc0d1d8b"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+SHA = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+
+[weakdeps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+KernelAbstractions = "63c18a36-062a-441e-b654-da1e3ab1ce7c"
+
+[extensions]
+AutonomousAIBenchmarkToolsExt = "BenchmarkTools"
+AutonomousAICUDAExt = "CUDA"
+AutonomousAIKernelAbstractionsExt = "KernelAbstractions"
+
+[compat]
+BenchmarkTools = "1"
+CUDA = "5"
+DotEnv = "1.0.0"
+KernelAbstractions = "0.9"
+Oxygen = "1.10.2"
+julia = "1.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
