@@ -1,0 +1,17 @@
+# 環境変数
+.env
+
+# GitHub App の秘密鍵
+*.pem
+
+# 実行ファイル
+*.exe
+
+# VS Code の設定フォルダ（任意）
+.vscode/
+
+# 文書フォルダ
+docs/
+
+# Markdown ファイル
+README.md

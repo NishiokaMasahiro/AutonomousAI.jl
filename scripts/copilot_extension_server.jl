@@ -245,12 +245,13 @@ function handle_client(sock::TCPSocket, backend::LLM.LLMBackend, cfg::ServerConf
             return
         end
 
-        if req.method == "POST" && req.target == "/v1/infer"
+        if req.method == "POST" && (req.target == "/v1/infer" || req.target == "/webhook")
             handle_infer(sock, req.body, backend)
             return
         end
 
-        if req.method == "POST" && req.target == "/v1/infer/stream"
+        if req.method == "POST" && (req.target == "/v1/infer/stream" ||
+                                      req.target == "/webhook/stream")
             handle_infer_stream(sock, req.body, backend, cfg.chunk_ms)
             return
         end
@@ -271,7 +272,7 @@ function serve(cfg::ServerConfig)
     server = listen(parse(IPAddr, cfg.host), cfg.port)
     println("[copilot-bridge] listening on http://", cfg.host, ":", cfg.port,
             " backend=", LLM.backend_name(backend))
-    println("[copilot-bridge] routes: GET /health, POST /v1/infer, POST /v1/infer/stream")
+    println("[copilot-bridge] routes: GET /health, POST /v1/infer|/webhook, POST /v1/infer/stream|/webhook/stream")
 
     while true
         sock = accept(server)
