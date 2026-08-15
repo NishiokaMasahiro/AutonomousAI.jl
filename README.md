@@ -44,7 +44,47 @@ julia --project=. -e 'using AutonomousAI; AutonomousAI.Interface.main(ARGS)' -- 
 julia --project=. examples/self_improvement.jl      # §46 の 5 段階比較
 julia --project=. examples/out_of_core.jl           # §39 の 100 GB ワークフロー
 julia --project=. scripts/copilot_extension_server.jl --port 8081  # Copilot Extensions / GitHub App 連携用
+julia --project=. benchmark/llm_model_comparison.jl # Mimase / Opus 5 / Gemini 3.7 比較
 ```
+
+## 1.1 LLM モデル名: Mimase
+
+AutonomousAI の既定 LLM は **Mimase** とする。
+
+- 実装上は `AutonomousAI.LLM.MimaseLLM()` を既定として使用
+- 旧名 `MockLLM` は後方互換エイリアスとして残す
+- 役割は「実行コード生成」ではなく「Schema に沿った計画提案」に限定
+
+## 1.2 Mimase と Opus 5 / Gemini 3.7 の比較方法
+
+比較対象:
+
+1. Mimase (`MimaseLLM`)
+2. Anthropic Opus 5 (`AnthropicLLM`)
+3. Gemini 3.7 (`OpenAICompatibleLLM` 経由)
+
+実行:
+
+```bash
+set ANTHROPIC_API_KEY=...
+set GEMINI_API_KEY=...
+set AAI_OPUS_MODEL=claude-opus-5
+set AAI_GEMINI_MODEL=gemini-3.7-pro
+set AAI_GEMINI_URL=https://generativelanguage.googleapis.com/v1beta/openai/chat/completions
+julia --project=. benchmark/llm_model_comparison.jl
+```
+
+評価指標:
+
+- transport success rate (API 到達率)
+- schema success rate (Schema.parse_plan 通過率)
+- latency median / p95
+- plan quality score (benchmark/verify/execute の網羅と順序)
+
+結果出力:
+
+- コンソールに集計表を表示
+- `benchmark/llm_model_comparison_results.csv` に詳細行を保存
 
 ## 2. 依存関係の方針
 

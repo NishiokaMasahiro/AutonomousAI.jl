@@ -103,7 +103,7 @@ mutable struct Agent
     last_verification::Union{Nothing,Verification.VerificationReport}
 end
 
-function Agent(; llm::LLM.LLMBackend = LLM.MockLLM(),
+function Agent(; llm::LLM.LLMBackend = LLM.MimaseLLM(),
                memory::Memory.MemorySystem = Memory.MemorySystem(),
                world::WorldModel.WorldState = WorldModel.WorldState(),
                policy::Union{Nothing,Safety.Policy} = nothing,

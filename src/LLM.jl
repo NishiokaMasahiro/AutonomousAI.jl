@@ -7,10 +7,11 @@ The LLM occupies exactly one position in this system: it proposes a *plan* over 
 closed action space in `Schema`, and it interprets failures.  It never produces a
 number that is used as a result, never emits shell text, and never sees a device.
 
-`MockLLM` is the default so that the whole loop runs offline and deterministically.
-It is a heuristic stand-in, and is labelled as such wherever it appears in reports:
-its plans are hand-written rules, not model output, and must not be presented as
-evidence about what a real model would plan.
+`MimaseLLM` is the default so that the whole loop runs offline and deterministically.
+`MockLLM` is kept as a compatibility alias.  It is a heuristic stand-in, and is
+labelled as such wherever it appears in reports: its plans are hand-written rules,
+not model output, and must not be presented as evidence about what a real model
+would plan.
 """
 module LLM
 
@@ -18,7 +19,7 @@ using Downloads, Dates, Printf
 using ..MiniJSON
 using ..Schema
 
-export LLMBackend, MockLLM, AnthropicLLM, OpenAICompatibleLLM, complete,
+export LLMBackend, MimaseLLM, MockLLM, AnthropicLLM, OpenAICompatibleLLM, complete,
        propose_plan, SYSTEM_PROMPT, backend_name, LLMResult
 
 abstract type LLMBackend end
@@ -67,13 +68,17 @@ Deterministic offline planner.  Encodes the heuristics of spec section 9 directl
 size and arithmetic intensity choose the backend, precision starts at the algorithm's
 `min_safe_precision`, and every plan ends with verification before execution.
 """
-struct MockLLM <: LLMBackend
+struct MimaseLLM <: LLMBackend
     verbose::Bool
 end
-MockLLM(; verbose::Bool = false) = MockLLM(verbose)
-backend_name(::MockLLM) = "mock-heuristic"
+MimaseLLM(; verbose::Bool = false) = MimaseLLM(verbose)
 
-function complete(m::MockLLM, system::AbstractString, user::AbstractString)
+# Backward-compatible alias for older call sites.
+const MockLLM = MimaseLLM
+
+backend_name(::MimaseLLM) = "mimase-heuristic"
+
+function complete(m::MimaseLLM, system::AbstractString, user::AbstractString)
     t0 = time()
     return LLMResult(mock_plan_json(user), true, "", time() - t0, backend_name(m))
 end
@@ -176,6 +181,9 @@ function complete(b::AnthropicLLM, system::AbstractString, user::AbstractString)
         return LLMResult(txt, false, "unparseable response: $(err)", time() - t0,
                          backend_name(b))
     end
+    parsed isa AbstractDict ||
+        return LLMResult(txt, false, "unexpected response shape", time() - t0,
+                         backend_name(b))
     content = get(parsed, "content", nothing)
     if content isa AbstractVector
         buf = IOBuffer()
@@ -222,6 +230,9 @@ function complete(b::OpenAICompatibleLLM, system::AbstractString, user::Abstract
         return LLMResult("", false, "unparseable response: $(err)", time() - t0,
                          backend_name(b))
     end
+    parsed isa AbstractDict ||
+        return LLMResult("", false, "unexpected response shape", time() - t0,
+                         backend_name(b))
     ch = get(parsed, "choices", nothing)
     if ch isa AbstractVector && !isempty(ch)
         msg = get(ch[1], "message", Dict{String,Any}())
