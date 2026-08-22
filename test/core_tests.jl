@@ -97,3 +97,12 @@ end
     @test AAI.AgentCore.infer_algorithm("robust median based detection") === :mad_anomaly
     @test AAI.AgentCore.infer_algorithm("multiply two big matrices") === :matmul
 end
+
+@testset "Compute.parallel_for! uses JACC only" begin
+    # GPUバックエンドでは「ホスト配列を捕捉するクロージャ」は不正。
+    # ここでは JACC 呼び出し自体が成立することのみ確認する。
+    n = 10_000
+    @test isnothing(AutonomousAI.Compute.parallel_for!(i -> nothing, n; backend=:jacc))
+
+    @test_throws ErrorException AutonomousAI.Compute.parallel_for!(i -> nothing, 16; backend=:threads)
+end

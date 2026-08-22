@@ -15,7 +15,7 @@ Goal → LLM(Plan) → World Model → Computational Optimizer → Julia Code/Ke
 最初にやること:
 
 ```bash
-julia --project=. -e 'using Pkg; Pkg.instantiate()'   # 依存は stdlib のみ
+julia --project=. -e 'using Pkg; Pkg.instantiate()'   # 依存をインストール
 julia --project=. test/runtests.jl                     # ここで初めて実測が始まる
 ```
 
@@ -86,16 +86,35 @@ julia --project=. benchmark/llm_model_comparison.jl
 - コンソールに集計表を表示
 - `benchmark/llm_model_comparison_results.csv` に詳細行を保存
 
-## 2. 依存関係の方針
+## 2. 依存関係と実行要件（重要）
 
-コアは **stdlib のみ**。CUDA.jl / KernelAbstractions.jl / BenchmarkTools.jl は
-package extension による **weak dependency** であり、無い場合は
-「候補空間からその能力が消える」だけでシステムは動く。
+- 本プロジェクトの並列計算は **JACC.jl 必須**（フォールバックなし）。
+- GPU 実行は **CUDA.jl 必須**。
+- `Compute` 層では `JACC.@init_backend` によりバックエンド初期化を行う。
 
-理由: エージェントが監査可能であること、レジストリのないマシンで起動できることは
-安全性要件である。JSON パーサすら自前(`MiniJSON`)なのはこのため。
+### セットアップ
 
-Python は使用していない。
+```bash
+julia --project=. -e 'using Pkg; Pkg.instantiate()'
+julia --project=. -e 'using Pkg; Pkg.precompile()'
+```
+
+### CUDA 環境要件
+
+- NVIDIA Driver が CUDA ランタイム要件を満たしていること。
+- CUDA ランタイム不一致（例: 13.1 / 13.2）が出る場合は、ランタイムを固定して Julia を再起動:
+
+```julia
+using CUDA
+CUDA.set_runtime_version!(v"13.1")  # 環境に合わせて変更
+```
+
+その後、Julia を再起動して再 precompile:
+
+```bash
+julia --project=. -e 'using Pkg; Pkg.precompile()'
+julia --project=. test/runtests.jl
+```
 
 ---
 

@@ -20,6 +20,25 @@ using LinearAlgebra, Statistics, Random
 using ..Schema
 import ..Memory
 using ..HAL
+using JACC
+
+# JACC 初期化はトップレベルで実行する
+JACC.@init_backend
+
+"""
+    parallel_for!(f, n; backend=:jacc)
+
+常に JACC で並列実行する。
+`backend` は後方互換のため残すが、`:jacc`/`:auto` 以外はエラー。
+"""
+function parallel_for!(f::F, n::Integer; backend::Symbol=:jacc) where {F<:Function}
+    n <= 0 && return nothing
+    (backend === :jacc || backend === :auto) || error("Only JACC backend is supported.")
+    JACC.parallel_for(1:n) do i
+        f(i)
+    end
+    return nothing
+end
 
 export ComputeBackend, CPUSerialBackend, CPUSIMDBackend, CPUThreadsBackend,
        CPUBLASBackend, CUDABackend, DistributedBackend,
